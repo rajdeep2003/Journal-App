@@ -4,7 +4,7 @@ const { signToken, verifyToken } = require("../utils/jwt");
 
 const signup = async (req, res, next) => {
   try {
-    const {username,passwordHash} = req.body;
+    let {username,passwordHash} = req.body;
     if (!username || !passwordHash) {
       return res.status(400).json({
         message: "all fields are not present",
