@@ -95,10 +95,14 @@ const getFriendRequests = async (req, res) => {
         const userId = req.user.userId;
 
         const requests = await FriendRequest.find({
-            receiverId: userId,
+            $or: [
+                { receiverId: userId },
+                { senderId: userId }
+            ],
             status: "pending"
         })
-        .populate("senderId", "username");
+        .populate("senderId", "username")
+        .populate("receiverId", "username");
 
         return res.status(200).json({
             count: requests.length,

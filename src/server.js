@@ -2,10 +2,13 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const registerRoutes = require("./routes/index");
+const socketAuth = require("./middleware/socketAuth");
 
 const app = express();
 
@@ -58,13 +61,39 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Server
+app.use(errorHandler);
+
+// HTTP SERVER
+const server = http.createServer(app);
+
+
+// SOCKET.IO
+const io = new Server(server, {
+    cors: {
+        origin: true,
+        credentials: true
+    }
+});
+
+io.use(socketAuth);
+
+// Socket connection
+io.on("connection", (socket) => {
+
+    console.log("Socket connected:", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log("Socket disconnected:", socket.id);
+    });
+
+});
+
+
+
+// START SERVER
 const PORT = process.env.PORT || 5000;
 
-
-
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-app.use(errorHandler);

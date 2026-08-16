@@ -12,6 +12,25 @@ const signup = async (req, res, next) => {
       });
     }
     
+       // Normalize username
+        username = username.trim();
+
+        // Username length validation
+    if (username.length < 3 || username.length > 20) {
+      return res.status(400).json({
+        message: "Username must be between 3 and 20 characters",
+        errorCode: 400,
+      });
+    }
+
+     // Username character validation
+    // Allows: letters, numbers and underscore
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return res.status(400).json({
+        message: "Username can only contain letters, numbers, and underscores",
+        errorCode: 400,
+      });
+    }
 
     if (passwordHash.length < 6) {
       return res.status(400).json({
