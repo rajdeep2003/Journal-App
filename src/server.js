@@ -9,6 +9,7 @@ const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const registerRoutes = require("./routes/index");
 const socketAuth = require("./middleware/socketAuth");
+const registerChatSocket = require("./socket/chatSocket");
 
 const app = express();
 
@@ -80,13 +81,13 @@ io.use(socketAuth);
 // Socket connection
 io.on("connection", (socket) => {
 
-    console.log("Socket connected:", socket.id);
+    console.log(
+        `Socket connected: ${socket.id}, User: ${socket.userId}`
+    );
 
-    socket.on("disconnect", () => {
-        console.log("Socket disconnected:", socket.id);
-    });
+    registerChatSocket(io, socket);
 
-});
+})
 
 
 
