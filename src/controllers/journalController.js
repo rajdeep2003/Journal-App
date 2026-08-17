@@ -161,7 +161,7 @@ const getFriendJournals = async (req, res) => {
         const userId = req.user.userId;
         const { friendId } = req.params;
 
-        const isFriend = await areFriends(userId, friendId);
+        const { isFriend, friendRequestId } = await areFriends(userId, friendId);
         if (!isFriend) {
             return res.status(403).json({
                 message: "You are not friends with this user"
@@ -175,6 +175,7 @@ const getFriendJournals = async (req, res) => {
 
         return res.status(200).json({
             message: "Friend's journals fetched successfully",
+            friendRequestId,
             journals
         });
     } catch (err) {
@@ -192,7 +193,7 @@ const getFriendTodayJournal = async (req, res) => {
         const userId = req.user.userId;
         const { friendId } = req.params;
 
-        const isFriend = await areFriends(userId, friendId);
+        const { isFriend, friendRequestId } = await areFriends(userId, friendId);
         if (!isFriend) {
             return res.status(403).json({
                 message: "You are not friends with this user"
@@ -222,6 +223,7 @@ const getFriendTodayJournal = async (req, res) => {
 
         return res.status(200).json({
             message: "Friend's today journal fetched successfully",
+            friendRequestId,
             journal
         });
     } catch (err) {
@@ -245,7 +247,8 @@ const getFriendsTodayJournals = async (req, res) => {
             });
         }
 
-        const friendIds = await getFriendIds(userId);
+        const friends = await getFriendIds(userId);
+        const friendIds = friends.map((f) => f.friendId);
         const todayIST = getStartOfISTDay();
 
         const journals = await Journal.find({
@@ -279,7 +282,11 @@ const getFriendsWrittenToday = async (req, res) => {
             });
         }
 
-        const friendIds = await getFriendIds(userId);
+        const friends = await getFriendIds(userId);
+        const friendIds = friends.map((f) => f.friendId);
+        const friendRequestByFriendId = Object.fromEntries(
+            friends.map((f) => [f.friendId, f.friendRequestId])
+        );
         const todayIST = getStartOfISTDay();
 
         const journals = await Journal.find({
@@ -290,7 +297,8 @@ const getFriendsWrittenToday = async (req, res) => {
         const friendsWrittenToday = journals.map((j) => ({
             userId: j.userId._id,
             username: j.userId.username,
-            isPublic: j.isPublic
+            isPublic: j.isPublic,
+            friendRequestId: friendRequestByFriendId[j.userId._id.toString()]
         }));
 
         return res.status(200).json({

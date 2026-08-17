@@ -2,21 +2,23 @@ const FriendRequest = require("../models/FriendRequest");
 const Journal = require("../models/Journal");
 const { getStartOfISTDay } = require("../utils/dateHelper");
 
-// Returns array of friend userIds (accepted requests, either direction)
+// Returns array of { friendId, friendRequestId } for accepted friendships
 const getFriendIds = async (userId) => {
     const accepted = await FriendRequest.find({
         status: "accepted",
         $or: [{ senderId: userId }, { receiverId: userId }]
-    }).select("senderId receiverId");
+    }).select("senderId receiverId _id");
 
-    return accepted.map((req) =>
-        req.senderId.toString() === userId.toString()
-            ? req.receiverId.toString()
-            : req.senderId.toString()
-    );
+    return accepted.map((req) => ({
+        friendId:
+            req.senderId.toString() === userId.toString()
+                ? req.receiverId.toString()
+                : req.senderId.toString(),
+        friendRequestId: req._id.toString()
+    }));
 };
 
-// Checks whether userId and friendId are actually friends
+// Checks whether userId and friendId are friends; includes the FriendRequest _id when they are
 const areFriends = async (userId, friendId) => {
     const req = await FriendRequest.findOne({
         status: "accepted",
@@ -24,8 +26,12 @@ const areFriends = async (userId, friendId) => {
             { senderId: userId, receiverId: friendId },
             { senderId: friendId, receiverId: userId }
         ]
-    });
-    return !!req;
+    }).select("_id");
+
+    return {
+        isFriend: !!req,
+        friendRequestId: req ? req._id.toString() : null
+    };
 };
 
 // Whether userId has written a journal for today (IST)

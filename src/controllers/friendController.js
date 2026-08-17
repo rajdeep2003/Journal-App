@@ -198,13 +198,17 @@ const getFriends = async (req, res) => {
         .populate("senderId", "username")
         .populate("receiverId", "username");
 
-        const friends = friendships.map(friendship => {
+        const friends = friendships.map((friendship) => {
+            const friend =
+                friendship.senderId._id.toString() === userId.toString()
+                    ? friendship.receiverId
+                    : friendship.senderId;
 
-            if (friendship.senderId._id.toString() === userId.toString()) {
-                return friendship.receiverId;
-            }
-
-            return friendship.senderId;
+            return {
+                _id: friend._id,
+                username: friend.username,
+                friendRequestId: friendship._id
+            };
         });
 
         return res.status(200).json({

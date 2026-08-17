@@ -48,6 +48,11 @@ const registerChatSocket = (io, socket) => {
     //     }
 
     // });
+
+
+
+
+    
     socket.on("join_chat", async ({ friendRequestId }) => {
 
     console.log("🔥 join_chat EVENT RECEIVED");
@@ -170,7 +175,8 @@ const registerChatSocket = (io, socket) => {
             console.error(err);
 
             socket.emit("chat_error", {
-                message: "Failed to send message"
+                message: "Failed to send message",
+                error: err.message
             });
 
         }
